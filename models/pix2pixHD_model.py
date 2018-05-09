@@ -182,13 +182,21 @@ class Pix2PixHDModel(BaseModel):
         input_label, inst_map, _, _ = self.encode_input(Variable(label), Variable(inst), infer=True)
 
         # Fake Generation
-        if self.use_features:       
+        if self.use_features:
+            assert False, "ONNX export breaks with use_features"
             # sample clusters from precomputed features             
             feat_map = self.sample_features(inst_map)
             input_concat = torch.cat((input_label, feat_map), dim=1)                        
         else:
-            input_concat = input_label                
-        fake_image = self.netG.forward(input_concat)
+            input_concat = input_label
+        if self.opt.export_onnx:
+            print ("Exporting to ONNX: ", self.opt.export_onnx)
+            assert self.opt.export_onnx.endswith("onnx"), "Export model file should end with .onnx"
+            fake_image = torch.onnx.export(self.netG, input_concat,
+                                           self.opt.export_onnx, verbose=True)
+            exit(0)
+        else:     
+            fake_image = self.netG.forward(input_concat)
         return fake_image
 
     def sample_features(self, inst): 

@@ -45,12 +45,6 @@ for i, data in enumerate(dataset):
     elif opt.data_type == 8:
         data['label'] = data['label'].uint8()
         data['inst']  = data['inst'].uint8()
-    if opt.export_onnx:
-        print ("Exporting to ONNX: ", opt.export_onnx)
-        assert opt.export_onnx.endswith("onnx"), "Export model file should end with .onnx"
-        torch.onnx.export(model, [data['label'], data['inst']],
-                          opt.export_onnx, verbose=True)
-        exit(0)
     minibatch = 1 
     if opt.engine:
         generated = run_trt_engine(opt.engine, minibatch, [data['label'], data['inst']])
